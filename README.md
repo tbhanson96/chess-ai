@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Quiet Gambit
 
-## Getting Started
+A small, self-contained chess game built with Next.js. You play White against a local search engine that runs entirely in the browser. There is no chess package, neural network, API, or server-side game state.
 
-First, run the development server:
+## Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000), select a piece, and choose one of its highlighted legal squares.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For hosted experiments, port `43127` is reserved for this app and proxied by
+`test.timbhanson.com`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev:test
+```
 
-## Learn More
+## Engine design
 
-To learn more about Next.js, take a look at the following resources:
+The implementation in `src/lib/chess.ts` includes:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- legal move generation, check detection, castling, en passant, and all four promotion choices;
+- depth-limited negamax (the symmetric form of minimax) with alpha-beta pruning;
+- capture-first move ordering to produce earlier alpha-beta cutoffs;
+- a handcrafted evaluation using standard material values, centralization, and pawn advancement;
+- terminal scoring for checkmate, stalemate, insufficient material, and the fifty-move rule.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The three difficulty settings search 4, 5, or 6 plies. The game reports the positions searched and elapsed time after every AI move.
 
-## Deploy on Vercel
+The design follows Claude Shannon's classic proposal of a depth-limited game tree plus a static evaluation function and the standard alpha-beta approach described in MIT's game-search lecture.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Checks
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run build
+```
+
+The move generator also matches the standard initial-position perft totals through depth 3: 20, 400, and 8,902 nodes.
